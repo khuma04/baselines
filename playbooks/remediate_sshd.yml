@@ -1,0 +1,41 @@
+  name: Restore approved SSH configuration
+  hosts: node1
+  become: true
+  gather_facts: false
+
+  tasks:
+
+    - name: Check approved SSH configuration exists
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/../baselines/sshd_config"
+      delegate_to: localhost
+      become: false
+      register: baseline_file
+
+    - name: Fail if baseline is missing
+      ansible.builtin.fail:
+        msg: "Approved SSH configuration is missing from GitLab project"
+      when: not baseline_file.stat.exists
+
+    - name: Restore approved SSH configuration
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../baselines/sshd_config"
+        dest: /etc/ssh/sshd_config
+        owner: root
+        group: root
+        mode: '0600'
+        backup: true
+        validate: '/usr/sbin/sshd -t -f %s'
+      notify: Reload sshd
+
+    - name: Verify SSH configuration
+      ansible.builtin.command:
+        cmd: /usr/sbin/sshd -t
+      changed_when: false
+
+  handlers:
+
+    - name: Reload sshd
+      ansible.builtin.service:
+        name: sshd
+        state: reloaded
