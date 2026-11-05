@@ -1,4 +1,5 @@
-  name: SSH configuration drift remediation
+---
+- name: SSH configuration drift remediation
   hosts: all
 
   sources:
