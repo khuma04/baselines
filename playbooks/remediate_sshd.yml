@@ -1,4 +1,4 @@
-  name: Restore approved SSH configuration
+- name: Restore approved SSH configuration
   hosts: node1
   become: true
   gather_facts: false
